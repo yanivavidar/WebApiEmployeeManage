@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit An Employee</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+      console.log(userid);
+
+      async function GreetHello() {
+        document.getElementById("full_name").innerText =
+          "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      async function getEmployee() {
+        const urlParams1 = new URLSearchParams(window.location.search);
+        let employeeid = urlParams1.get("employeeid");
+        let resp1 = await fetch(
+          "https://localhost:44300/api/Employee/" + employeeid
+        );
+        let data1 = await resp1.json();
+        if (data1 != null) {
+          console.log(data1);
+          document.getElementById("fName").value = data1.FirstName;
+          document.getElementById("startWorkYear").value = data1.StartWorkYear;
+          document.getElementById("lName").value = data1.LastName;
+          document.getElementById("department_id").value = data1.DepartmentID;
+        } else {
+          alert("you can't edit this record");
+          window.location.href = "shifts.html?userid=" + userid;
+        }
+      }
+
+      async function getShifts() {
+        let resp = await fetch("https://localhost:44300/api/Shift");
+        let shifts = await resp.json();
+        shifts.forEach((shift) => {
+          let opt = document.createElement("option");
+          opt.innerText =
+            shift.Date.slice(0, 10) +
+            ", " +
+            shift.StartTime +
+            " " +
+            shift.EndTime;
+          opt.value = shift.ID;
+          document.getElementById("shifts").appendChild(opt);
+        });
+      }
+
+      //-----------update emp------------------//
+
+      async function updateEmployee() {
+        let status = await addAction();
+        if (status == true) {
+          const urlParams2 = new URLSearchParams(window.location.search);
+          let employeeid = urlParams2.get("employeeid");
+          let obj = {
+            First_Name: document.getElementById("fName").value,
+            Last_Name: document.getElementById("lName").value,
+            Start_Work_Year: document.getElementById("startWorkYear").value,
+            DepartmentID: document.getElementById("department_id").value,
+          };
+          let fetchParams = {
+            method: "PUT",
+            body: JSON.stringify(obj),
+            headers: { "Content-Type": "application/json" },
+          };
+
+          let resp = await fetch(
+            "https://localhost:44300/api/Employee/" + employeeid,
+            fetchParams
+          );
+          let status = await resp.json();
+          alert(status);
+          window.location.href = "employees.html?employees=" + userid;
+        }
+
+        const urlParams2 = new URLSearchParams(window.location.search);
+        let employeeid = urlParams2.get("employeeid");
+        let obj = {
+          FirstName: document.getElementById("fName").value,
+          StartWorkYear: document.getElementById("startWorkYear").value,
+          LastName: document.getElementById("lName").value,
+          DepartmentID: document.getElementById("department_id").value,
+        };
+        let fetchParams = {
+          method: "PUT",
+          body: JSON.stringify(obj),
+          headers: { "Content-Type": "application/json" },
+        };
+
+        let resp = await fetch(
+          "https://localhost:44300/api/Employee/" + employeeid,
+          fetchParams
+        );
+        let status1 = await resp.json();
+        alert(status1);
+        window.location.href = "employees.html?employees=" + userid;
+      }
+
+      async function deleteEmployee() {
+        let status = await addAction();
+        if (status == true) {
+          const urlParams3 = new URLSearchParams(window.location.search);
+          let employeeid = urlParams3.get("employeeid");
+          let fetchParams = {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+          };
+
+          let resp = await fetch(
+            "https://localhost:44300/api/Employee/" + employeeid,
+            fetchParams
+          );
+          let status = await resp.json();
+          alert(status);
+          window.location.href = "employees.html?userid=" + userid;
+        }
+      }
+
+      //---------------------add shifts to employee-----------------//
+
+      async function addShiftToEmployee() {
+        let status = await addAction();
+        if (status == true) {
+          const urlParams3 = new URLSearchParams(window.location.search);
+          let employeeid = urlParams3.get("employeeid");
+          let obj = {
+            EmployeeID: employeeid,
+            ShiftID: document.getElementById("shifts").value,
+          };
+
+          let fetchParams = {
+            method: "POST",
+            body: JSON.stringify(obj),
+            headers: { "Content-Type": "application/json" },
+          };
+
+          let resp = await fetch(
+            "https://localhost:44300/api/UpdateEmpShift",
+            fetchParams
+          );
+          let status = await resp.json();
+          alert(status);
+          window.location.href = "employees.html?employees=" + userid;
+        }
+      }
+
+      let outOfActions = false;
+      let numOfActions = 0;
+
+      async function checkLogs(userid) {
+        let resp = await fetch("https://localhost:44300/api/Login/" + userid);
+        outOfActions = await resp.json();
+        if (!outOfActions.NumOfActions > 0) {
+          alert("You are out of actions. Try again in 24 hours :)");
+          window.location.href = "Login.html";
+          return outOfActions;
+        } else {
+          numOfActions = outOfActions.NumOfActions;
+          numOfActions--;
+          return false;
+        }
+      }
+
+      async function addAction() {
+        let status = await checkLogs(userid);
+        if (status == false) {
+          let objToAct = { ID: userid, NumOfActions: numOfActions };
+          let addActParams = {
+            method: "put",
+            body: JSON.stringify(objToAct),
+            headers: { "Content-type": "application/json" },
+          };
+          let addAction = await fetch(
+            "https://localhost:44300/api/Login/" + userid,
+            addActParams
+          );
+
+          return true;
+          console.log(added);
+        } else {
+          return false;
+        }
+      }
+
+      function HomePage() {
+        window.location.href = "Homepage.html?userid=" + userid;
+      }
+
+      function Employee() {
+        window.location.href = "employees.html?userid=" + userid;
+      }
+
+      function logout() {
+        window.location.href = "login.html";
+      }
+    </script>
+  </head>
+  <body onload="getEmployee(); GreetHello(); getShifts()">
+    <div class="container">
+      <h3>Edit An Employee</h3>
+      <br /><br />
+      <div class="form-group">
+        <label for="fName">Employee First Name:</label>
+        <input type="text" class="form-control" id="fName" />
+      </div>
+      <div class="form-group">
+        <label for="lName">Employee Last Name:</label>
+        <input type="text" class="form-control" id="lName" />
+      </div>
+      <div class="form-group">
+        <label for="startWorkYear">Start Working Year:</label>
+        <input type="text" class="form-control" id="startWorkYear" />
+      </div>
+      <div class="form-group">
+        <label for="department_id">Department Number:</label>
+        <input type="text" class="form-control" id="department_id" />
+      </div>
+
+      <div class="form-group">
+        <label for="shifts">Select Shift:</label>
+        <select class="form-control" id="shifts">
+          <option value="pick up shift">Pick the Shift</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="updateEmployee()">
+        Update Employee
+      </button>
+      <button class="btn btn-primary" onclick="addShiftToEmployee()">
+        Add Shift to Employee
+      </button>
+      <button class="btn btn-danger" onclick="deleteEmployee()">
+        Delete Employee
+      </button>
+      <button class="btn btn-primary" onclick="Employee()">Employees</button>
+      <button class="btn btn-primary" onclick="HomePage()">Homepage</button>
+      <button class="btn btn-primary" onclick="logout()">Logout</button>
+      <span id="full_name" class="top-right"></span><br />
+    </div>
+  </body>
+</html>

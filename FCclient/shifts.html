@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shift Menu</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <style>
+      .top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Shift Menu</h1>
+      <br />
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Start time</th>
+            <th>End time</th>
+            <!-- <th>Action</th> -->
+          </tr>
+        </thead>
+        <tbody id="tbl"></tbody>
+      </table>
+      <br />
+      <button class="btn btn-primary" onclick="redirectAddShift()">
+        Add Shift
+      </button>
+      <br /><br />
+      <button class="btn btn-primary" onclick="HomePage()">Homepage</button>
+      <button class="btn btn-primary" onclick="logout()">Logout</button>
+      <span id="full_name" class="top-right"></span>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      function GreetHello() {
+        document.getElementById("full_name").innerText =
+          "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      async function getShift() {
+        let resp = await fetch("https://localhost:44300/api/Shift");
+        let shifts = await resp.json();
+        console.log(shifts);
+        shifts.forEach((shift) => {
+          let trObj = document.createElement("tr");
+          let tdID = document.createElement("td");
+          let tdDateShift = document.createElement("td");
+          let tdStartShift = document.createElement("td");
+          let tdEndShift = document.createElement("td");
+          tdID.innerText = shift.ID;
+
+          let tdeditobj = document.createElement("td");
+          // let editBtn = document.createElement("button");
+          // editBtn.innerText = "Edit/Delete";
+          // editBtn.classList.add("btn", "btn-primary");
+          // editBtn.onclick = function () {
+          //   activated = true;
+          //   if ((activated = true)) {
+          //     window.location.href =
+          //       "EditShiftEmp.html?employeeid=" + shift.ID + "&userid=" + userid;
+          //   }
+          // };
+          // tdeditobj.appendChild(editBtn);
+
+          let linkObj1 = document.createElement("a");
+          linkObj1.innerText = shift.Date.slice(0, 10);
+          linkObj1.href =
+            "EditEmp.html?employeeid=" + shift.ID + "&userid=" + userid;
+          tdDateShift.appendChild(linkObj1);
+          tdStartShift.innerText = shift.StartTime;
+          tdEndShift.innerText = shift.EndTime;
+
+          trObj.appendChild(tdID);
+          trObj.appendChild(tdDateShift);
+          trObj.appendChild(tdStartShift);
+          trObj.appendChild(tdEndShift);
+          // trObj.appendChild(tdeditobj);
+
+          document.getElementById("tbl").appendChild(trObj);
+        });
+      }
+
+      function redirectAddShift() {
+        window.location.href = "CreateShift.html?userid=" + userid;
+      }
+
+      function HomePage() {
+        window.location.href = "Homepage.html?userid=" + userid;
+      }
+
+      function logout() {
+        window.location.href = "login.html";
+      }
+
+      window.onload = function () {
+        getShift();
+        GreetHello();
+      };
+    </script>
+  </body>
+</html>

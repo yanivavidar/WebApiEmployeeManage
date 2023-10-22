@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome Page</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      .container {
+        margin-top: 50px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body onload="GreetHello()">
+    <div class="container">
+      <h1>Welcome <span id="full_name"></span></h1>
+      <br />
+      <button type="button" class="btn btn-primary" onclick="MoveToEmp()">
+        Click here for Employees menu
+      </button>
+      <br />
+      <br />
+      <button type="button" class="btn btn-primary" onclick="MoveToDep()">
+        Click here for Departments menu
+      </button>
+      <br />
+      <br />
+      <button type="button" class="btn btn-primary" onclick="MoveToShift()">
+        Click here for Shift Menu
+      </button>
+      <br />
+      <br />
+      <button type="button" class="btn btn-danger" onclick="LogOut()">
+        Log Out
+      </button>
+      <br />
+      <br />
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      function LogOut() {
+        window.location.href = "login.html";
+      }
+
+      function MoveToDep() {
+        window.location.href = "department.html?userid=" + userid;
+      }
+
+      function MoveToEmp() {
+        window.location.href = "employees.html?userid=" + userid;
+      }
+
+      function MoveToShift() {
+        window.location.href = "shifts.html?userid=" + userid;
+      }
+
+      function GreetHello() {
+        document.getElementById("full_name").innerText =
+          sessionStorage.getItem("userFullname");
+      }
+    </script>
+  </body>
+</html>

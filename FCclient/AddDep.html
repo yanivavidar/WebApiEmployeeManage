@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create A Department</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <style>
+      .top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Create A Department</h1>
+      <br />
+      <div class="form-group">
+        <label for="department_name">Name:</label>
+        <input type="text" id="department_name" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="department_manager">Manager:</label>
+        <input type="text" id="department_manager" class="form-control" />
+      </div>
+      <br />
+      <button class="btn btn-primary" onclick="CreateDep()">Submit</button>
+      <br /><br />
+      <button class="btn btn-primary" onclick="Departments()">
+        Departments
+      </button>
+      <button class="btn btn-primary" onclick="HomePage()">Homepage</button>
+      <button class="btn btn-primary" onclick="logout()">Logout</button>
+      <span id="full_name" class="top-right"></span>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      function GreetHello() {
+        document.getElementById("full_name").innerText =
+          "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      async function CreateDep() {
+        let status = await addAction();
+        if (status == true) {
+          let obj = {
+            Name: document.getElementById("department_name").value,
+            Manager: document.getElementById("department_manager").value,
+          };
+          let fetchParams = {
+            method: "POST",
+            body: JSON.stringify(obj),
+            headers: { "Content-Type": "application/json" },
+          };
+
+          let resp = await fetch(
+            "https://localhost:44300/api/Department",
+            fetchParams
+          );
+          let status = await resp.json();
+          alert(status);
+          window.location.href = "department.html?userid=" + userid;
+        }
+      }
+
+      let outOfActions = false;
+      let numOfActions = 0;
+
+      async function checkLogs(userid) {
+        let resp = await fetch("https://localhost:44300/api/Login/" + userid);
+        outOfActions = await resp.json();
+        if (!outOfActions.NumOfActions > 0) {
+          alert("You are out of actions. Try again in 24 hours :)");
+          window.location.href = "Login.html";
+          return outOfActions;
+        } else {
+          numOfActions = outOfActions.NumOfActions;
+          numOfActions--;
+          return false;
+        }
+      }
+
+      async function addAction() {
+        let status = await checkLogs(userid);
+        if (status == false) {
+          let objToAct = { ID: userid, NumOfActions: numOfActions };
+          let addActParams = {
+            method: "put",
+            body: JSON.stringify(objToAct),
+            headers: { "Content-type": "application/json" },
+          };
+          let addAction = await fetch(
+            "https://localhost:44300/api/Login/" + userid,
+            addActParams
+          );
+
+          return true;
+          console.log(added);
+        } else {
+          return false;
+        }
+      }
+
+      function HomePage() {
+        window.location.href = "Homepage.html?userid=" + userid;
+      }
+
+      function Departments() {
+        window.location.href = "department.html?userid=" + userid;
+      }
+
+      function logout() {
+        window.location.href = "login.html";
+      }
+
+      window.onload = function () {
+        GreetHello();
+      };
+    </script>
+  </body>
+</html>

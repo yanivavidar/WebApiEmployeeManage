@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <title>Create a new Employee</title>
+    <style>
+      body {
+        padding: 20px;
+      }
+
+      h3 {
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .counter_btn {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        margin-right: 10px;
+      }
+
+      .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      .top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      async function addEmployee() {
+        let obj = {
+          FirstName: document.getElementById("fName").value,
+          LastName: document.getElementById("lName").value,
+          StartWorkYear: document.getElementById("startWorkYear").value,
+          DepartmentID: document.getElementById("department_id").value,
+        };
+        let fetchParams = {
+          method: "POST",
+          body: JSON.stringify(obj),
+          headers: { "Content-Type": "application/json" },
+        };
+
+        let resp = await fetch(
+          "https://localhost:44300/api/employee",
+          fetchParams
+        );
+        let status = await resp.json();
+        alert(status);
+        window.location.href = "employees.html?userid=" + userid;
+      }
+
+      let outOfActions = false;
+
+      async function checkLogs(userid) {
+        let resp = await fetch("https://localhost:44300/api/Login/" + userid);
+        outOfActions = await resp.json();
+        if (outOfActions == true) {
+          alert("You are out of actions. Try again in 24 hours :)");
+          window.location.href = "login.html";
+          return outOfActions;
+        } else {
+          return outOfActions;
+        }
+      }
+
+      async function addAction() {
+        let status = await checkLogs(userid);
+        if (status == false) {
+          let objToAct = { user_id: userid };
+          let addActParams = {
+            method: "put",
+            body: JSON.stringify(objToAct),
+            headers: { "Content-type": "application/json" },
+          };
+          let addAction = await fetch(
+            "https://localhost:44300/api/Login/" + userid,
+            addActParams
+          );
+
+          return true;
+          console.log(added);
+        } else {
+          return false;
+        }
+      }
+
+      async function GreetHello() {
+        let User = document.getElementById("fullname1");
+        User.innerText = "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      function HomePage() {
+        window.location.href = "Homepage.html?userid=" + userid;
+      }
+
+      function Employee() {
+        window.location.href = "employees.html?userid=" + userid;
+      }
+
+      function logout() {
+        window.location.href = "login.html";
+      }
+    </script>
+  </head>
+  <body onload="GreetHello()">
+    <div class="container">
+      <h3>Create a new Employee</h3>
+      <div class="form-group">
+        <label for="fName">First Name:</label>
+        <input type="text" id="fName" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="lName">Last Name:</label>
+        <input type="text" id="lName" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="startWorkYear">Start Working Year:</label>
+        <input type="text" id="startWorkYear" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label for="department_id">Department ID:</label>
+        <input type="text" id="department_id" class="form-control" />
+      </div>
+      <button class="counter_btn" onclick="addEmployee()">Add</button>
+      <button class="btn btn-primary" onclick="logout()">Log out</button>
+      <button class="btn btn-primary" onclick="Employee()">Employees</button>
+      <button class="btn btn-primary" onclick="HomePage()">Homepage</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+      <span id="fullname1" class="top-right"></span>
+    </div>
+  </body>
+</html>

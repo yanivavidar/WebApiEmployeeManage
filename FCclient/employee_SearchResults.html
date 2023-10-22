@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bootstrap Styling</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+  </head>
+  <body onload="getResult()">
+    <div class="container">
+      <h3>Your results:</h3>
+
+      <table class="table table-bordered" id="tbl"></table>
+      <br /><br />
+      <button class="btn btn-primary" onclick="Employee()">
+        Back to Employees Table</button
+      ><br /><br />
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      function GreetHello() {
+        document.getElementById("full_name").innerText =
+          "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      function logout() {
+        window.location.href = "Factory_Login.html";
+      }
+
+      function Employee() {
+        window.location.href = "employees.html?userid=" + userid;
+      }
+
+      async function getResult() {
+        let val = sessionStorage.getItem("value");
+        let resp = await fetch("https://localhost:44300/api/Employee");
+        let employees = await resp.json();
+        employees.forEach((emp) => {
+          if (
+            emp.FirstName.toUpperCase() == val ||
+            emp.LastName.toUpperCase() == val ||
+            emp.DepartmentID == val
+          ) {
+            let trObj = document.createElement("tr");
+            let tdfname = document.createElement("td");
+            let tdlname = document.createElement("td");
+            let tdDep = document.createElement("td");
+            tdfname.innerText = emp.FirstName;
+            tdlname.innerText = emp.LastName;
+            tdDep.innerText = emp.DepartmentID;
+            trObj.appendChild(tdfname);
+            trObj.appendChild(tdlname);
+            trObj.appendChild(tdDep);
+            document.getElementById("tbl").appendChild(trObj);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

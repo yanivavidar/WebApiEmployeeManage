@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Employees Page</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      .container {
+        margin-top: 50px;
+        text-align: center;
+      }
+      #elastic {
+        margin-bottom: 10px;
+      }
+      #tbl {
+        width: 100%;
+      }
+      .top-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body onload="LoadEmps(); GreetHello()">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <input
+            type="text"
+            id="elastic"
+            class="form-control"
+            placeholder="Search employee..."
+            onkeyup="getNeeded()"
+          />
+        </div>
+      </div>
+      <span id="res"></span>
+      <h1>Employees</h1>
+      <br />
+      <table class="table table-bordered" id="tbl">
+        <thead>
+          <tr>
+            <th>Worker Full Name</th>
+            <th>Works Since</th>
+            <th>Department ID</th>
+            <th>Shift Schedule</th>
+            <th>Edit/Delete</th>
+          </tr>
+        </thead>
+        <tbody id="employee-table"></tbody>
+      </table>
+      <br />
+      <br />
+      <input
+        type="button"
+        class="btn btn-primary"
+        value="Add Employee"
+        onclick="AddEmployee()"
+      />
+      <input
+        type="button"
+        class="btn btn-primary"
+        value="Homepage"
+        onclick="HomePage()"
+      />
+      <input
+        type="button"
+        class="btn btn-danger"
+        value="Logout"
+        onclick="logout()"
+      />
+      <span id="full_name" class="top-right"></span><br />
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      let userid = urlParams.get("userid");
+
+      function GreetHello() {
+        document.getElementById("full_name").innerText =
+          "Hello " + sessionStorage.getItem("userFullname");
+      }
+
+      async function getNeeded() {
+        let val = document.getElementById("elastic").value.toUpperCase();
+        let resp = await fetch("https://localhost:44300/api/Employee");
+        let employees = await resp.json();
+        if (val != "") {
+          let found = false;
+          employees.forEach((emp) => {
+            if (
+              emp.FirstName.toUpperCase() == val ||
+              emp.LastName.toUpperCase() == val ||
+              emp.DepartmentID == val
+            ) {
+              found = true;
+              sessionStorage.setItem("value", val);
+              window.location.href =
+                "employee_SearchResults.html?userid=" + userid;
+            }
+          });
+          if (!found) {
+            document.getElementById("res").innerText = "No results...";
+          }
+        } else {
+          document.getElementById("res").innerText = "";
+        }
+      }
+
+      async function LoadEmps() {
+        let resp = await fetch("https://localhost:44300/api/employee");
+        let employees = await resp.json();
+        console.log(employees);
+        let table = document.getElementById("employee-table");
+        employees.forEach((emp) => {
+          let trObj = document.createElement("tr");
+
+          let tdFullName = document.createElement("td");
+          let linkObj = document.createElement("a");
+          linkObj.innerText = emp.FirstName + " " + emp.LastName;
+          linkObj.href =
+            "EditEmp.html?employeeid=" + emp.ID + "&userid=" + userid;
+          tdFullName.appendChild(linkObj);
+
+          let tdStartYear = document.createElement("td");
+          tdStartYear.innerText = emp.StartWorkYear;
+
+          let tdDepartment = document.createElement("td");
+          tdDepartment.innerText = emp.DepartmentID;
+
+          let tdShifts = document.createElement("td");
+          let tblObj = document.createElement("table");
+          tblObj.classList.add("table");
+          let tr1Obj = document.createElement("tr");
+
+          emp.EmployeeShift.forEach((sh) => {
+            let tdDate = document.createElement("td");
+            tdDate.innerText =
+              sh.Shift.Date.slice(0, 10) +
+              ", " +
+              sh.Shift.StartTime +
+              " - " +
+              sh.Shift.EndTime;
+            tr1Obj.appendChild(tdDate);
+          });
+
+          tblObj.appendChild(tr1Obj);
+          tdShifts.appendChild(tblObj);
+
+          let tdEditDelete = document.createElement("td");
+          let editDeleteButton = document.createElement("button");
+          editDeleteButton.classList.add("btn", "btn-primary");
+          editDeleteButton.innerText = "Edit/Delete/AddShift";
+          editDeleteButton.onclick = function () {
+            activated = true;
+            if (activated) {
+              window.location.href =
+                "EditEmp.html?employeeid=" + emp.ID + "&userid=" + userid;
+            }
+          };
+          tdEditDelete.appendChild(editDeleteButton);
+
+          trObj.appendChild(tdFullName);
+          trObj.appendChild(tdStartYear);
+          trObj.appendChild(tdDepartment);
+          trObj.appendChild(tdShifts);
+          trObj.appendChild(tdEditDelete);
+
+          table.appendChild(trObj);
+        });
+      }
+
+      function AddEmployee() {
+        window.location.href = "AddEmp.html";
+      }
+
+      function HomePage() {
+        window.location.href = "Homepage.html?userid=" + userid;
+      }
+
+      function logout() {
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>
